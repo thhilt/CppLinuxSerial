@@ -9,6 +9,7 @@
 
 // System includes
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <stdio.h>   	// Standard input/output definitions
 #include <string.h>  	// String function definitions
@@ -101,7 +102,7 @@ namespace CppLinuxSerial {
 
 		// O_RDONLY for read-only, O_WRONLY for write only, O_RDWR for both read/write access
 		// 3rd, optional parameter is mode_t mode
-		fileDesc_ = open(device_.c_str(), O_RDWR);
+		fileDesc_ = open(device_.c_str(), O_RDWR | O_NOCTTY);
 
 		// Check status
 		if(fileDesc_ == -1) {
@@ -393,7 +394,7 @@ namespace CppLinuxSerial {
 		}
 	}
 
-	void SerialPort::Read(std::string& data)
+	void SerialPort::Read(std::vector<std::string>& data)
 	{
         data.clear();
 
@@ -404,8 +405,8 @@ namespace CppLinuxSerial {
 		}
 
 		// Allocate memory for read buffer
-//		char buf [256];
-//		memset (&buf, '\0', sizeof buf);
+		// char buf [256];
+		// memset (&buf, '\0', sizeof buf);
 
 		// Read from file
         // We provide the underlying raw array from the readBuffer_ vector to this C api.
@@ -421,10 +422,59 @@ namespace CppLinuxSerial {
 
 		if(n > 0) {
 
-//			buf[n] = '\0';
+			// buf[n] = '\0';
 			//printf("%s\r\n", buf);
-//			data.append(buf);
-            data = std::string(&readBuffer_[0], n);
+			// data = buf;
+			
+			// data = std::string(&readBuffer_[0], n);
+
+			// Debug
+            // char device = readBuffer_[0];
+			// printf("%02X ", device); 
+            // char fonction = readBuffer_[1];
+			// printf("%02X ", fonction); 
+			// char status1 = readBuffer_[2];
+			// printf("%02X ", status1); 
+			// char status2 = readBuffer_[3];
+			// printf("%02X ", status2); // en %d on a 14, donc on compare du bin
+
+			// if (status2 == 0x0E)
+			// {
+			// 	std::cout << "okkkkk!!" << std::endl;
+			// }
+
+			// Debug
+            // std::cout << "Serial size: " << n << std::endl;
+            
+			// 30/08 conversion between char and std::string easier to manipulate with C++
+			char s[255];
+			snprintf(s, 255, "%02X %02X %02X %02X %02X %02X %02X %02X %02X", 
+											(int)(*(unsigned char*) (&readBuffer_[0])), 
+											(int)(*(unsigned char*) (&readBuffer_[1])), 
+											(int)(*(unsigned char*) (&readBuffer_[2])),
+											(int)(*(unsigned char*) (&readBuffer_[3])),
+											(int)(*(unsigned char*) (&readBuffer_[4])),
+											(int)(*(unsigned char*) (&readBuffer_[5])),
+											(int)(*(unsigned char*) (&readBuffer_[6])),
+											(int)(*(unsigned char*) (&readBuffer_[7])),
+											(int)(*(unsigned char*) (&readBuffer_[8])));
+			std::string str(s);
+			
+			// Debug
+			// std::cout << "Serial read: " << str << std::endl;
+
+			// Put every byte in a vector, as it will be easier to recover it later
+			std::stringstream ss(str);
+			std::istream_iterator<std::string> begin(ss);
+			std::istream_iterator<std::string> end;
+			std::vector<std::string> vstrings(begin, end);
+			
+			// Debug
+			//std::copy(vstrings.begin(), vstrings.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
+
+			// Return the vectorized hex values
+			data = vstrings;
+
 			//std::cout << *str << " and size of string =" << str->size() << "\r\n";
 		}
 
