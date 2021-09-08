@@ -447,21 +447,17 @@ namespace CppLinuxSerial {
             // std::cout << "Serial size: " << n << std::endl;
             
 			// 30/08 conversion between char and std::string easier to manipulate with C++
-			char s[255];
-			snprintf(s, 255, "%02X %02X %02X %02X %02X %02X %02X %02X %02X", 
-											(int)(*(unsigned char*) (&readBuffer_[0])), 
-											(int)(*(unsigned char*) (&readBuffer_[1])), 
-											(int)(*(unsigned char*) (&readBuffer_[2])),
-											(int)(*(unsigned char*) (&readBuffer_[3])),
-											(int)(*(unsigned char*) (&readBuffer_[4])),
-											(int)(*(unsigned char*) (&readBuffer_[5])),
-											(int)(*(unsigned char*) (&readBuffer_[6])),
-											(int)(*(unsigned char*) (&readBuffer_[7])),
-											(int)(*(unsigned char*) (&readBuffer_[8])));
+			char* s;
+			for (int i=0; i<n; i++)
+			{
+				snprintf(s+i*3, 4, "%02X ", (int)(*(unsigned char*) (&readBuffer_[i])));
+			}
+
 			std::string str(s);
+			//str.append("\n");
 			
 			// Debug
-			// std::cout << "Serial read: " << str << std::endl;
+			std::cout << "Serial read: " << str << std::endl;
 
 			// Put every byte in a vector, as it will be easier to recover it later
 			std::stringstream ss(str);
@@ -470,7 +466,7 @@ namespace CppLinuxSerial {
 			std::vector<std::string> vstrings(begin, end);
 			
 			// Debug
-			//std::copy(vstrings.begin(), vstrings.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
+			// std::copy(vstrings.begin(), vstrings.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
 
 			// Return the vectorized hex values
 			data = vstrings;
