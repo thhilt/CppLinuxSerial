@@ -447,15 +447,17 @@ namespace CppLinuxSerial {
             // std::cout << "Serial size: " << n << std::endl;
             
 			// 30/08 conversion between char and std::string easier to manipulate with C++
-			char* s;
+			char s[1000];
+			// s[n] = '\0';
 			for (int i=0; i<n; i++)
 			{
+				
 				snprintf(s+i*3, 4, "%02X ", (int)(*(unsigned char*) (&readBuffer_[i])));
 			}
 
 			std::string str(s);
-			//str.append("\n");
-			
+			// str.append("\n");
+					
 			// Debug
 			std::cout << "Serial read: " << str << std::endl;
 
@@ -464,6 +466,10 @@ namespace CppLinuxSerial {
 			std::istream_iterator<std::string> begin(ss);
 			std::istream_iterator<std::string> end;
 			std::vector<std::string> vstrings(begin, end);
+
+			// Traitement :
+			// // Chercher 01 (adresse du driver)
+			// // puis chercher num fonction
 			
 			// Debug
 			// std::copy(vstrings.begin(), vstrings.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
